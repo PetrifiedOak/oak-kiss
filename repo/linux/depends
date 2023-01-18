@@ -1,0 +1,7 @@
+bison  make
+ccache make
+libelf
+linux-firmware
+xz
+zlib
+zstd

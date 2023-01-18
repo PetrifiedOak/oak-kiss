@@ -1,0 +1,41 @@
+#!/bin/sh -e
+
+
+sed 's/FORCE//' arch/x86/crypto/Makefile > _
+mv -f _ arch/x86/crypto/Makefile
+
+make oldconfig
+make syncconfig
+
+KERNELRELEASE="$(make kernelrelease)"
+modulesdir="$1/usr/lib/modules/$KERNELRELEASE"
+builddir="$modulesdir/build"
+
+make CC='ccache gcc' KCFLAGS="$CFLAGS" CFLAGS="$CFLAGS"
+make INSTALL_MOD_PATH="$1/usr" INSTALL_MOD_STRIP=1 modules_install
+
+rm -f "$modulesdir/build" "$modulesdir/source"
+
+for dir in kernel arch/x86/kernel drivers/md net/mac80211 tools/objtool; do
+    mkdir -p "$builddir/$dir"
+done
+
+cp .config Makefile Module.symvers System.map "$builddir"
+cp kernel/Makefile "$builddir/kernel/"
+cp arch/x86/Makefile "$builddir/arch/x86/"
+cp arch/x86/kernel/asm-offsets.s "$builddir/arch/x86/kernel/"
+cp drivers/md/*.h "$builddir/drivers/md/"
+cp net/mac80211/*.h "$builddir/net/mac80211/"
+cp tools/objtool/objtool "$builddir/tools/objtool/"
+
+cp -LR scripts "$builddir/scripts"
+cp -LR include "$builddir/include"
+cp -LR arch/x86/include "$builddir/arch/x86/include"
+
+find . -name "Kconfig*" -exec install -Dm644 {} "$builddir/{}" \;
+
+rm -rf "$builddir/Documentation"
+find -L "$builddir" -type l -exec rm -rf {} +
+find "$builddir" -type f -name "*.o" -exec rm -rf {} +
+
+install -Dm755 arch/x86/boot/bzImage "$1/boot/EFI/BOOT/BOOTX64.EFI"
