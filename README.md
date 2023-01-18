@@ -2,6 +2,6 @@
 This is meant for personal use!!
 
 
-# Packages
+## Packages
   -linux-firmware linux firmware package, only has polaris10*. For personal use.
-  -linux see the .config. For personal use.
+  -linux see the .config for more info. For personal use.
